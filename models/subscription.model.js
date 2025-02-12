@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
-import User from "./user.model";
 
-const subscriptionShema = new mongoose.Schema(
+const subscriptionSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -18,7 +17,7 @@ const subscriptionShema = new mongoose.Schema(
     currency: {
       type: String,
       enum: ["USD", "EUR", "GBP"],
-      default: ["USD"],
+      default: "USD",
     },
     frequency: {
       type: String,
@@ -28,7 +27,7 @@ const subscriptionShema = new mongoose.Schema(
       type: String,
       enum: ["sports", "news", "entertainment", "lifestyle", "technology", "finance", "politics", "other"],
     },
-    paymentMethods: {
+    paymentMethod: {
       type: String,
       required: true,
       trim: true,
@@ -36,7 +35,7 @@ const subscriptionShema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["active", "cancelled", "expired"],
-      default: ["active"],
+      default: "active",
     },
     startDate: {
       type: Date,
@@ -66,7 +65,7 @@ const subscriptionShema = new mongoose.Schema(
 );
 
 // Auto-calculare renewal date if missing
-subscriptionShema.pre("save", function (next) {
+subscriptionSchema.pre("save", function (next) {
   if (!this.renewalDate) {
     const renewalPeriods = {
       daily: 1,
@@ -79,7 +78,7 @@ subscriptionShema.pre("save", function (next) {
     this.renewalDate.setDate(this.renewalDate.getDate() + renewalPeriods[this.frequency]);
   }
 
-  // Auto-update the status if renewal date is passed
+  // Auto-update the status if renewal date has passed
   if (this.renewalDate < new Date()) {
     this.status = "expired";
   }
@@ -87,6 +86,6 @@ subscriptionShema.pre("save", function (next) {
   next();
 });
 
-const Subscription = mongoose.model("Subscription", subscriptionShema);
+const Subscription = mongoose.model("Subscription", subscriptionSchema);
 
 export default Subscription;
